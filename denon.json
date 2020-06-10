@@ -1,0 +1,12 @@
+{
+  "$schema": "https://deno.land/x/denon/schema.json",
+  "scripts": {
+    "start": {
+      "cmd": "deno run --allow-net --allow-write --allow-read --allow-plugin --unstable server.ts",
+      "allow": ["env"],
+      "env": {
+        "PORT": "8000"
+      }
+    }
+  }
+}
