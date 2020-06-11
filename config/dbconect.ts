@@ -1,18 +1,28 @@
-import { MongoClient } from "https://deno.land/x/mongo@v0.7.0/mod.ts";
+import { Database, DataTypes, Model } from "https://deno.land/x/denodb/mod.ts";
 
-// Create the client
-const client = new MongoClient();
+// Connect to MongoDB
+const db = new Database("mongo", {
+  uri: "mongodb://127.0.0.1:27017",
+  database: "ali",
+});
 
-// Connect to mongodb
-client.connectWithUri("mongodb://127.0.0.1:27017");
+// Create Model from Database
+class Product extends Model {
+  static table = "products";
+  static timestamp = true;
 
-// Specifying the database name
-const dbname: string = "ali";
-const db = client.database(dbname);
+  static fields = {
+    _id: {
+      primaryKey: true,
+    },
+    name: DataTypes.STRING,
+    description: DataTypes.STRING,
+  };
+}
 
-// Delare the collection here.
-const Products = db.collection("products");
+// Link the Model with database
+db.link([Product]);
 
-console.log("MongoBD is connect");
+// await db.sync({ drop: true });
 
-export { db, Products };
+export { Product };

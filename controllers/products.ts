@@ -1,36 +1,11 @@
-import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import { Product } from "../types.ts";
-
-let products: Product[] = [
-  {
-    id: "1",
-    name: "Products One",
-    description: "This is products one",
-    price: 12.99,
-  },
-  {
-    id: "2",
-    name: "Products Two",
-    description: "This is products two",
-    price: 13.99,
-  },
-  {
-    id: "3",
-    name: "Products Three",
-    description: "This is products Three",
-    price: 16.99,
-  },
-  {
-    id: "4",
-    name: "Products Four",
-    description: "This is products Four",
-    price: 17.99,
-  },
-];
+import { Product as Pd } from "../config/dbconect.ts";
 
 /// @desc   All Products
 /// @route  GET /api/v1/products
-export const getProducts = ({ response }: { response: any }) => {
+export const getProducts = async ({ response }: { response: any }) => {
+  // Get all the data from database
+  const products: Product[] = await Pd.all();
   response.body = {
     success: true,
     data: products,
@@ -39,10 +14,11 @@ export const getProducts = ({ response }: { response: any }) => {
 
 /// @desc   Single Product
 /// @route  GET /api/v1/products/:id
-export const getProduct = (
+export const getProduct = async (
   { params, response }: { params: { id: string }; response: any },
 ) => {
-  const product: Product | undefined = products.find((p) => p.id === params.id);
+  // Get the single document from database
+  const product: Product = await Pd.find(params.id);
 
   if (product) {
     response.status = 200;
@@ -74,9 +50,10 @@ export const AddProduct = async (
     };
   } else {
     try {
-      const product: Product = body.value;
+      const { name, description, price } = body.value;
 
-      const res = await products.push(product);
+      // Insert the data into database
+      const res = await Pd.create({ name, description, price });
 
       response.status = 201;
 
@@ -104,23 +81,26 @@ export const updateProduct = async (
     response: any;
   },
 ) => {
-  const product: Product | undefined = products.find((p) => p.id === params.id);
-
+  // find the data
+  const product = await Pd.find(params.id);
   if (product) {
     const body = await request.body();
 
-    const updateData: { name?: string; description?: string; price?: number } =
-      body.value;
+    const { name, description, price } = body.value;
 
-    products = products.map((p) =>
-      p.id === params.id ? { ...p, ...updateData } : p
+    // update the data into database
+    await Pd.where("_id", params.id).update(
+      { name, description, price },
     );
+
+    // get the updated data
+    const prod = await Pd.find(params.id);
 
     response.status = 200;
 
     response.body = {
       success: true,
-      data: products,
+      data: prod,
     };
   } else {
     response.status = 404;
@@ -133,10 +113,11 @@ export const updateProduct = async (
 
 /// @desc   Delete Product
 /// @route  DELETE /api/v1/products/:id
-export const deleteProduct = (
+export const deleteProduct = async (
   { params, response }: { params: { id: string }; response: any },
 ) => {
-  products = products.filter((p) => p.id !== params.id);
+  // Delete the data from database
+  await Pd.deleteById(params.id);
 
   response.status = 200;
 
